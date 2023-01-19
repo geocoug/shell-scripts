@@ -10,5 +10,6 @@ git clone https://github.com/geocoug/shell-scripts.git && \
 mkdir $HOME/bin && \
 cd $HOME/bin && \
 ln -s $HOME/shell-scripts/repo_status.sh repo_status && \
+ln -s $HOME/shell-scripts/pull_repos.sh pull_repos && \
 chmod +x repo_status
 ```
