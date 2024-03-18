@@ -67,12 +67,17 @@ function help() {
 #  $* = all arguments.
 #  $@ = all arguments, starting from 1.
 #  $1 = first argument.
+
 if [ $# -gt 2 ]
 then
     printf "Unexpected arguments: $*\n"
     printf "\n"
     help
 else
+    if [ $# -eq 0 ]
+    then
+        help
+    fi
     if [ $# -gt 0 ]
     then
         case "$1" in
