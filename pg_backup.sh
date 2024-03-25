@@ -11,16 +11,24 @@
 #                and "export PGPASSWORD=$DB_PASS;" codes                       #
 ################################################################################
 
-DB_PASS=`head -n 1 $HOME/bin/pg_pass`
+DB_PASS=`head -n 1 $HOME/pg_pass`
 MAX_BACKUPS=30
+# Auto detect the subversion of the installed PostgreSQL by running ls on the
+# /opt/homebrew/Cellar/postgresql* directory. The subversion is the directory
+# with the highest number.
+PG_BIN=`(ls -d /opt/homebrew/Cellar/postgresql@16/* | sort -n | tail -1)`
+# Append the bin directory to the PG_BIN variable
+PG_BIN="$PG_BIN/bin"
 
 # Capture starting timestamp
 TIMESLOT=`date +%Y_%m_%d.%H_%M`
 printf "[$TIMESLOT] START ...................... pg_backup\n"
 printf "[$TIMESLOT] TIMESLOT ................... $TIMESLOT\n"
+printf "[$TIMESLOT] MAX_BACKUPS ................ $MAX_BACKUPS\n"
+printf "[$TIMESLOT] PG_BIN ..................... $PG_BIN\n"
 
 # Location to place local backup (before copying to remote mount point)
-BACKUP_DIR=$HOME/iCloud/Backups/postgres
+BACKUP_DIR=/Users/cgrant/iCloud/Backups/postgres
 printf "[$TIMESLOT] BACKUP_DIR ................. $BACKUP_DIR\n"
 
 # cd to the backup dir 
@@ -29,16 +37,16 @@ cd $BACKUP_DIR
 # Dump the globals to a backup file
 printf "[$TIMESLOT] Dumping globals to ......... $TIMESLOT.globals.sql\n"
 printf "[$TIMESLOT]\n"
-/opt/homebrew/bin/pg_dumpall -g > $TIMESLOT.globals.sql
+export PGPASSWORD=$DB_PASS; $PG_BIN/pg_dumpall -h localhost -g > $TIMESLOT.globals.sql
 
 # Get a list of all of the databases
-DATABASES=`export PGPASSWORD=$DB_PASS; /opt/homebrew/bin/psql -q -l -t | awk {'print $1'} | sort | grep -v "|\|^template"`
+DATABASES=`export PGPASSWORD=$DB_PASS; $PG_BIN/psql -q -l -t -h localhost | awk {'print $1'} | sort | grep -v "|\|^template"`
 
 # Dump each database
 for DATABASE in $DATABASES; do
     printf "[$TIMESLOT] Processing db .............. $DATABASE\n"
     TIMEINFO=`date '+%T'`
-    export PGPASSWORD=$DB_PASS; /opt/homebrew/bin/pg_dump -Fc $DATABASE > $TIMESLOT.$DATABASE.pgdb
+    export PGPASSWORD=$DB_PASS; $PG_BIN/pg_dump -h localhost -Fc $DATABASE > $TIMESLOT.$DATABASE.pgdb
     printf "[$TIMESLOT] Backup complete ............ at $TIMEINFO\n"
     printf "[$TIMESLOT] Temp dump created as ....... $TIMESLOT.$DATABASE.pgdb\n"
     printf "[$TIMESLOT]\n"
