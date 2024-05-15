@@ -1,2 +1,3 @@
 valid_values.sh
-mount_smb.sh
+mount_gsi_smb.sh
+umount_gsi_smb.sh
